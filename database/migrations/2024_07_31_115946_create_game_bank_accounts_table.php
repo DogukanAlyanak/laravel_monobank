@@ -13,14 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+        Schema::create('game_bank_accounts', function (Blueprint $table) {
+            $table->uuid('id')->primary()->unique();
+            $table->uuid('room_id');
+            $table->string('player_session_token');
+            $table->bigInteger('balance');
+            $table->timestamps(); // Bu satır created_at ve updated_at sütunlarını ekler
         });
     }
 
@@ -31,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('game_bank_accounts');
     }
 };

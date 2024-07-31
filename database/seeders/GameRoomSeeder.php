@@ -16,6 +16,6 @@ class gameRoomSeeder extends Seeder
      */
     public function run()
     {
-        GameRoom::factory()->count(10)->create();
+        // GameRoom::factory()->count(10)->create(); // not need. have for sample code
     }
 }

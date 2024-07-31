@@ -13,14 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('failed_jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('uuid')->unique();
-            $table->text('connection');
-            $table->text('queue');
-            $table->longText('payload');
-            $table->longText('exception');
-            $table->timestamp('failed_at')->useCurrent();
+        Schema::create('game_players', function (Blueprint $table) {
+            $table->uuid('id')->primary()->unique();
+            $table->string('session_token');
+            $table->string('player_name')->nullable();;
+            $table->timestamps(); // Bu satır created_at ve updated_at sütunlarını ekler
         });
     }
 
@@ -31,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('failed_jobs');
+        Schema::dropIfExists('game_players');
     }
 };
