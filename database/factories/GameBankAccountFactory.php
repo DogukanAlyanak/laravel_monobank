@@ -25,9 +25,10 @@ class GameBankAccountFactory extends Factory {
     public function definition() {
         return [
             'id' => (string) Str::uuid(),
-            'room_id' => Str::random(60),
+            'room_id' => (string) Str::uuid(),
             'player_session_token' => Str::random(60),
             'balance' => 0,
+            'is_banker' => 0,
             'created_at' => now(),
             'updated_at' => now(),
         ];

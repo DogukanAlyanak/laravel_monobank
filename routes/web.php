@@ -32,11 +32,13 @@ Route::get('/', function () {
 |
 */
 // GETS
-Route::get("/create_room",                  [GameController::class, "createRoom"])->name("gameCreateRoom");
-Route::get("/room/{room_id}",               [GameController::class, "getRoom"])->name("gameGetRoom");
-Route::get("/ses",                          [GameController::class, "getSessionView"])->name("gameGetSess");
-Route::get("/set_player_name",              [GameController::class, "setPlayerName"])->name("gameSetPlayerName");
+Route::get("/create_room",                          [GameController::class, "createRoom"])->name("gameCreateRoom");
+Route::get("/room/{room_id}",                       [GameController::class, "getRoom"])->name("gameGetRoom");
+Route::get("/ses",                                  [GameController::class, "getSessionView"])->name("gameGetSess");
+Route::get("/set_player_name",                      [GameController::class, "setPlayerName"])->name("gameSetPlayerName");
 
 // POSTS
-Route::post("/create_room_process",         [GameController::class, "createRoomProcess"])->name("gameCreateRoomProcess");
-Route::post("/set_player_name_process",     [GameController::class, "setPlayerNameProcess"])->name("gameSetPlayerNameProcess");
+Route::post("/create_room_process",                 [GameController::class, "createRoomProcess"])->name("gameCreateRoomProcess");
+Route::post("/set_player_name_process",             [GameController::class, "setPlayerNameProcess"])->name("gameSetPlayerNameProcess");
+Route::post("/get_player_accounts_from_room",       [GameController::class, "getPlayerAccountsFromRoom"])->name("gameGetPlayerAccountsFromRoom");
+Route::post("/set_player_banker_to_this_room",      [GameController::class, "setPlayerBanker"])->name("gameSetPlayerBanker");

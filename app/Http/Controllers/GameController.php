@@ -5,12 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GameRoom;
 use App\Models\GamePlayer;
+use App\Models\GameBankAccount;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
 
-class GameController extends Controller
-{
+class GameController extends Controller {
+
+
+    protected $game_start_balance;
+
+    public function __construct() {
+        $this->game_start_balance = env('GAME_START_BALANCE', 0);
+    }
+
+
+
+
+
     /* --- ODA OLUŞTUR ------------------------- */
     public function createRoom() {
         return view('game.create_room');
@@ -64,6 +77,22 @@ class GameController extends Controller
             // Room modelini kullanarak oda bilgilerini al (hata alırsan id li oda bulunamyan hataya gönder (catch))
             $room = GameRoom::findOrFail($room_id);
 
+
+            // room oluşturulmuş veya bulunmuşsa hemen banka hesabını oluştur.
+            $gameBankAccount
+                = GameBankAccount::where('room_id', $room_id)
+                                 ->where('player_session_token', $sessionToken)
+                                 ->first();
+
+            if ($gameBankAccount == null) {
+                $gameBankAccount = new GameBankAccount;
+                $gameBankAccount->room_id = $room_id;
+                $gameBankAccount->player_session_token = $sessionToken;
+                $gameBankAccount->balance = $this->game_start_balance;
+                $gameBankAccount->save();
+            }
+
+
             // Eğer oyuncu kendi adını girmemişse oyuncu adını girmeye yönlendir. (user name = player name)
             if (empty($gamePlayer->player_name)) {
                 return view('game.get_room',  ['redirect' => route('gameSetPlayerName',  ['room_id' => $room_id])]);
@@ -81,6 +110,9 @@ class GameController extends Controller
 
 
         } catch (\Exception $e) {
+            return response()->json($e);
+
+
             // Diğer tüm hatalar için genel bir catch bloğu
             return view('game.get_room',  ['redirect' => route('gameCreateRoom')]);
         }
@@ -201,5 +233,115 @@ class GameController extends Controller
 
         // if have some errors.
         return response()->json('Bad Request', 400);
+    }
+
+
+
+
+
+    /* --- GET PLAYER ACCOUNTS FROM ROOM --- PROCESS ---------------------------- */
+    public function getPlayerAccountsFromRoom(Request $request) {
+
+        // Validation
+        $request->validate([
+            'room_id' => 'required|string|max:700',
+        ]);
+
+        // Requests
+        $roomID = $request->room_id;
+
+        try {
+
+            // --- This Player Account Controller -------
+
+            // Tüm sessionlar
+            $allSessionData = Session::all();
+
+            // Session data controllers
+            if ($allSessionData["_token"]) {
+                $sessionToken = $allSessionData["_token"];
+
+                $thisPlayerAccount
+                    = GameBankAccount::where('room_id', $roomID)
+                                     ->where('player_session_token', $sessionToken)
+                                     ->first();
+
+                if ($thisPlayerAccount == null) {
+                    $thisPlayerAccount = new GameBankAccount;
+                    $thisPlayerAccount->room_id = $roomID;
+                    $thisPlayerAccount->player_session_token = $sessionToken;
+                    $thisPlayerAccount->balance = $this->game_start_balance;
+                    $thisPlayerAccount->save();
+                }
+            }
+
+            // Odaya göre oyuncu hesaplarını getir.
+            // $playerAccounts = GameBankAccount::where('room_id', $roomID)->select('id', 'player_session_token', 'balance')->get(); // not need this codes
+            $playerAccounts = DB::table('game_bank_accounts')
+                    ->join('game_players', 'game_bank_accounts.player_session_token', '=', 'game_players.session_token')
+                    ->select('game_bank_accounts.id',
+                             'game_bank_accounts.player_session_token',
+                             'game_bank_accounts.balance',
+                             'game_bank_accounts.is_banker',
+                             'game_players.player_name')
+                    ->where('room_id', $roomID)
+                    ->get();
+
+
+            // oyuncu hesap verileri gönder
+            return response()->json(['success' => true, 'data' => $playerAccounts]);
+        } catch (\Exception $e) {
+
+            // herhangi bir hata durumunda hata gönder
+            return response()->json(['success' => false, 'error' => $e], 501);
+        }
+    }
+
+
+
+
+
+    /* --- SET PLAYER BANKER --- PROCESS ---------------------------- */
+    public function setPlayerBanker(Request $request) {
+
+        // Validation
+        $request->validate([
+            'player_token' => 'required|string|max:700',
+            'room_id' => 'required|string|max:700',
+        ]);
+
+        // Requests
+        $playerToken    = $request->player_token;
+        $roomID         = $request->room_id;
+
+        try {
+
+            // Odadaki Tüm Oyuncuları Listele
+            $records = GameBankAccount::where('room_id', $roomID)
+                                      ->get();
+
+            // Tüm Oyuncuların bankacı görevini elinden al
+            foreach ($records as $record) {
+                $record->is_banker = 0;
+                $record->save();
+            }
+
+
+            // Seçili oyuncu
+            $selectedPlayerAccount
+                    = GameBankAccount::where('room_id', $roomID)
+                                     ->where('player_session_token', $playerToken)
+                                     ->first();
+
+            // Seçili oyuncuya Bankacı Görevi Ata
+            $selectedPlayerAccount->is_banker = 1;
+            $selectedPlayerAccount->save();
+
+        } catch (\Exception $e) {
+
+            // herhangi bir hata durumunda hata gönder
+            return response()->json(['success' => false, 'error' => $e], 501);
+        }
+
     }
 }

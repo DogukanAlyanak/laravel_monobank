@@ -20,6 +20,7 @@ class GameBankAccount extends Model
         'room_id',
         'player_session_token',
         'balance',
+        'is_banker',
     ];
 
     /**

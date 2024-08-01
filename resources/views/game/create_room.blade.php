@@ -42,6 +42,7 @@
                         }
                     },
                     error: function(xhr, status, error) {
+
                         // Handle error
                         console.error([xhr, status, error]);
                     }
