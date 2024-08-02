@@ -344,4 +344,29 @@ class GameController extends Controller {
         }
 
     }
+
+
+    /* --- THIS PLAYER GAME SCREEN ---------------------------- */
+    public function getThisPlayerScreen(Request $request) {
+
+        $request->validate([
+            'room_id' => 'required|string|max:700',
+        ]);
+
+        $roomID         = $request->room_id;
+
+        // Tüm session verisini almak (tüm verileri array olarak alır)
+        $allSessionData = Session::all();
+
+        try {
+            $thisPlayer = GamePlayer::where('session_token', $allSessionData["_token"])->first();
+
+            return view('game.player_screen', [
+                "this_player" => $thisPlayer,
+                "room_id" => $roomID
+            ]);
+        } catch (\Exception $e) {
+            return view('game.player_screen',  ['redirect' => route('gameCreateRoom')]);
+        }
+    }
 }

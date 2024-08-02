@@ -33,9 +33,12 @@ Route::get('/', function () {
 */
 // GETS
 Route::get("/create_room",                          [GameController::class, "createRoom"])->name("gameCreateRoom");
-Route::get("/room/{room_id}",                       [GameController::class, "getRoom"])->name("gameGetRoom");
-Route::get("/ses",                                  [GameController::class, "getSessionView"])->name("gameGetSess");
 Route::get("/set_player_name",                      [GameController::class, "setPlayerName"])->name("gameSetPlayerName");
+Route::get("/room/{room_id}",                       [GameController::class, "getRoom"])->name("gameGetRoom");
+Route::get("/room/{room_id}/player/me",             [GameController::class, "getThisPlayerScreen"])->name("gameGetThisPlayerScreen");
+
+// TESTS
+// Route::get("/ses",                                  [GameController::class, "getSessionView"])->name("gameGetSess");
 
 // POSTS
 Route::post("/create_room_process",                 [GameController::class, "createRoomProcess"])->name("gameCreateRoomProcess");
